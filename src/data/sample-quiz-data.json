@@ -1,0 +1,51 @@
+{
+  "categories": [
+    {
+      "id": "geography",
+      "name": "地理知识",
+      "description": "探索世界各地的地理奇观",
+      "icon": "🌍",
+      "color": "#17a2b8"
+    }
+  ],
+  "questions": {
+    "geography": [
+      {
+        "id": "g1",
+        "question": "世界上最高的山峰是哪座？",
+        "options": {
+          "a": "乔戈里峰",
+          "b": "珠穆朗玛峰",
+          "c": "干城章嘉峰",
+          "d": "洛子峰"
+        },
+        "correctAnswer": "b",
+        "explanation": "珠穆朗玛峰是世界上最高的山峰，海拔约8848米。"
+      },
+      {
+        "id": "g2",
+        "question": "中国最大的湖泊是哪个？",
+        "options": {
+          "a": "鄱阳湖",
+          "b": "洞庭湖",
+          "c": "太湖",
+          "d": "青海湖"
+        },
+        "correctAnswer": "d",
+        "explanation": "青海湖是中国最大的湖泊，也是最大的咸水湖。"
+      },
+      {
+        "id": "g3",
+        "question": "世界上面积最大的国家是哪个？",
+        "options": {
+          "a": "中国",
+          "b": "美国",
+          "c": "俄罗斯",
+          "d": "加拿大"
+        },
+        "correctAnswer": "c",
+        "explanation": "俄罗斯是世界上面积最大的国家，领土面积约1709.82万平方公里。"
+      }
+    ]
+  }
+}
