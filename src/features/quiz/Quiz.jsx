@@ -130,24 +130,27 @@ export default function Quiz() {
   const isMultipleChoice = correctAnswers.length > 1;
   const canEditCurrentQuestion = canEditQuestions(currentUser);
   const elapsedTimeText = useMemo(() => formatElapsedTime(elapsedSeconds), [elapsedSeconds]);
-  const progressWithCurrentResult = useMemo(() => {
+  const baseProgress = submittedProgress || progress;
+  const visibleProgress = useMemo(() => {
     const shouldCountCurrentResult = showResult &&
       currentQuestion &&
       !isReviewingHistory &&
-      !progress.answeredIds.includes(currentQuestion.id);
+      !baseProgress.answeredIds.includes(currentQuestion.id);
 
     if (!shouldCountCurrentResult) {
-      return progress;
+      return baseProgress;
     }
 
     return {
-      answeredIds: [...progress.answeredIds, currentQuestion.id],
+      answeredIds: [...baseProgress.answeredIds, currentQuestion.id],
       correctCount: isCorrect
-        ? Math.min(progress.correctCount + 1, totalQuestions)
-        : progress.correctCount
+        ? Math.min(baseProgress.correctCount + 1, totalQuestions)
+        : baseProgress.correctCount
     };
-  }, [currentQuestion, isCorrect, isReviewingHistory, progress, showResult, totalQuestions]);
-  const visibleProgress = submittedProgress || progressWithCurrentResult;
+  }, [baseProgress, currentQuestion, isCorrect, isReviewingHistory, showResult, totalQuestions]);
+  const currentQuestionNumber = showResult && !isReviewingHistory
+    ? visibleProgress.answeredIds.length
+    : visibleProgress.answeredIds.length + 1;
 
   useEffect(() => {
     const handleAuthChange = () => setCurrentUser(getCurrentUser());
@@ -295,14 +298,15 @@ export default function Quiz() {
   }, []);
 
   const recordQuestionProgress = async (wasCorrect) => {
-    const alreadyAnswered = progress.answeredIds.includes(currentQuestion.id);
+    const progressBeforeSubmit = submittedProgress || progress;
+    const alreadyAnswered = progressBeforeSubmit.answeredIds.includes(currentQuestion.id);
     const nextProgress = alreadyAnswered
-      ? progress
+      ? progressBeforeSubmit
       : {
-          answeredIds: [...progress.answeredIds, currentQuestion.id],
+          answeredIds: [...progressBeforeSubmit.answeredIds, currentQuestion.id],
           correctCount: wasCorrect
-            ? Math.min(progress.correctCount + 1, totalQuestions)
-            : progress.correctCount
+            ? Math.min(progressBeforeSubmit.correctCount + 1, totalQuestions)
+            : progressBeforeSubmit.correctCount
         };
 
     setProgress(nextProgress);
@@ -608,7 +612,7 @@ export default function Quiz() {
               <span className="category-name">{category?.name}</span>
             </div>
             <div className="question-counter">
-              第 {Math.min(visibleProgress.answeredIds.length + 1, totalQuestions)} / {totalQuestions} 题
+              第 {Math.min(currentQuestionNumber, totalQuestions)} / {totalQuestions} 题
             </div>
             <div className="quiz-timer" aria-label={`本次用时 ${elapsedTimeText}`}>
               <div className="quiz-timer-readout">
