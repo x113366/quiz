@@ -1,0 +1,263 @@
+.header {
+  background: rgba(255, 250, 240, 0.92);
+  padding: 0;
+  border-bottom: 1px solid var(--border-paper);
+  box-shadow: 0 8px 24px rgba(78, 57, 27, 0.1);
+  backdrop-filter: blur(10px);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.zoom-control {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--green-soft);
+  border: 1px solid rgba(40, 90, 58, 0.22);
+  border-radius: 4px;
+  padding: 0.25rem 0.5rem;
+}
+
+.zoom-btn {
+  background: var(--paper);
+  border: 1px solid rgba(40, 90, 58, 0.25);
+  color: var(--green);
+  width: 28px;
+  height: 28px;
+  border-radius: 3px;
+  font-size: 1rem;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.zoom-btn:hover {
+  background: #fff6df;
+  transform: translateY(-1px);
+}
+
+.zoom-level {
+  color: var(--green);
+  font-size: 0.9rem;
+  font-weight: 500;
+  min-width: 45px;
+  text-align: center;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  text-decoration: none;
+  color: var(--ink);
+  font-size: 1.8rem;
+  font-weight: bold;
+}
+
+.logo-icon {
+  font-size: 2.15rem;
+  line-height: 1;
+}
+
+.logo-text {
+  font-size: 1.75rem;
+  letter-spacing: 0.04em;
+  line-height: 1.15;
+}
+
+.nav {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.nav-link,
+.auth-button {
+  color: var(--ink-muted);
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 3px;
+  border: 1px solid transparent;
+  transition: all 0.2s ease;
+}
+
+.nav-link:hover,
+.auth-button:hover {
+  color: var(--green);
+  background: var(--green-soft);
+}
+
+.nav-link.active,
+.auth-button.active {
+  color: var(--green);
+  background: #fff6df;
+  border-color: rgba(40, 90, 58, 0.22);
+  box-shadow: inset 0 -2px 0 var(--gold);
+}
+
+.auth-control {
+  align-items: center;
+  display: flex;
+  gap: 0.5rem;
+}
+
+.auth-user {
+  color: var(--green);
+  font-size: 0.92rem;
+  font-weight: 700;
+  max-width: 9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.auth-button {
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 0.95rem;
+}
+
+@media (max-width: 768px) {
+  .header {
+    transition: transform 0.24s ease, box-shadow 0.24s ease;
+  }
+
+  .header.quiz-mobile-header {
+    box-shadow: 0 4px 14px rgba(78, 57, 27, 0.1);
+  }
+
+  .header.quiz-mobile-header .header-container {
+    align-items: center;
+    min-height: 44px;
+  }
+
+  .header.quiz-mobile-header .header-right {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .header.quiz-mobile-header .logo-text,
+  .header.quiz-mobile-header .zoom-control,
+  .header.quiz-mobile-header .auth-user {
+    display: none;
+  }
+
+  .header.quiz-mobile-header .nav {
+    flex-wrap: nowrap;
+  }
+
+  .header.quiz-mobile-header.is-hidden {
+    transform: translateY(calc(-100% + 8px));
+  }
+
+  .header-container {
+    padding: 0.55rem 0.75rem;
+  }
+
+  .header-right {
+    gap: 0.5rem;
+  }
+
+  .logo-text {
+    font-size: 1.05rem;
+  }
+
+  .logo-icon {
+    font-size: 1.3rem;
+  }
+
+  .zoom-control {
+    padding: 0.12rem 0.28rem;
+  }
+
+  .zoom-btn {
+    width: 22px;
+    height: 22px;
+    font-size: 0.9rem;
+  }
+
+  .zoom-level {
+    font-size: 0.75rem;
+    min-width: 34px;
+  }
+
+  .nav {
+    gap: 0.25rem;
+  }
+
+  .nav-link {
+    padding: 0.36rem 0.42rem;
+    font-size: 0.78rem;
+  }
+
+  .auth-button {
+    padding: 0.36rem 0.42rem;
+    font-size: 0.78rem;
+  }
+
+  .auth-user {
+    max-width: 6rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-container {
+    align-items: flex-start;
+    gap: 0.45rem;
+  }
+
+  .logo {
+    gap: 0.36rem;
+    padding-top: 0.18rem;
+  }
+
+  .header-right {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.32rem;
+  }
+
+  .zoom-control {
+    order: -1;
+  }
+
+  .nav {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    max-width: 12.5rem;
+  }
+
+  .header.quiz-mobile-header .nav {
+    max-width: none;
+  }
+
+  .auth-control {
+    max-width: 100%;
+    gap: 0.28rem;
+  }
+
+  .auth-user {
+    max-width: 4.8rem;
+    font-size: 0.76rem;
+  }
+}

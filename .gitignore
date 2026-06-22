@@ -11,6 +11,12 @@ node_modules
 dist
 dist-ssr
 *.local
+.env
+.env.*
+!.env.example
+.codex-*.png
+.learnings/
+题库材料/
 
 # Editor directories and files
 .vscode/*

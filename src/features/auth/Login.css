@@ -1,0 +1,120 @@
+.login-page {
+  display: flex;
+  justify-content: center;
+  padding: 2rem 1rem;
+}
+
+.login-panel {
+  width: min(100%, 460px);
+  background:
+    linear-gradient(90deg, transparent 31px, rgba(163, 59, 47, 0.14) 32px, transparent 33px),
+    repeating-linear-gradient(0deg, transparent 0 29px, var(--paper-line) 30px 31px),
+    var(--paper);
+  border: 1px solid var(--border-paper);
+  border-radius: 4px;
+  box-shadow: var(--shadow-paper);
+  padding: 2rem;
+}
+
+.login-eyebrow {
+  color: var(--green);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin: 0 0 0.5rem;
+}
+
+.login-title {
+  color: var(--ink);
+  font-size: 2rem;
+  line-height: 1.2;
+  margin: 0 0 0.75rem;
+}
+
+.login-copy {
+  color: var(--ink-muted);
+  margin: 0 0 1.5rem;
+}
+
+.login-form {
+  display: grid;
+  gap: 1rem;
+}
+
+.login-field {
+  display: grid;
+  gap: 0.45rem;
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.login-field input {
+  width: 100%;
+  border: 1px solid var(--border-paper);
+  border-radius: 3px;
+  background: #fffaf0;
+  color: var(--ink);
+  font: inherit;
+  padding: 0.75rem 0.85rem;
+}
+
+.login-field input::placeholder {
+  color: rgba(107, 96, 79, 0.7);
+}
+
+.login-submit,
+.login-primary-link,
+.login-mode-button {
+  border-radius: 3px;
+  font-weight: 700;
+  min-height: 44px;
+}
+
+.login-submit,
+.login-primary-link {
+  align-items: center;
+  background: var(--green);
+  border: 1px solid var(--green);
+  color: #fffaf0;
+  display: inline-flex;
+  justify-content: center;
+  padding: 0.75rem 1rem;
+}
+
+.login-submit {
+  cursor: pointer;
+  margin-top: 0.25rem;
+}
+
+.login-submit:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.login-mode-button {
+  background: transparent;
+  border: 1px solid rgba(40, 90, 58, 0.24);
+  color: var(--green);
+  cursor: pointer;
+  margin-top: 1rem;
+  padding: 0.7rem 1rem;
+  width: 100%;
+}
+
+.login-message {
+  background: var(--red-soft);
+  border: 1px solid rgba(163, 59, 47, 0.22);
+  border-radius: 3px;
+  color: var(--red);
+  padding: 0.7rem 0.85rem;
+}
+
+@media (max-width: 520px) {
+  .login-panel {
+    padding: 1.25rem;
+  }
+
+  .login-title {
+    font-size: 1.6rem;
+  }
+}
