@@ -4,7 +4,9 @@ import { getCategoryById, getCategoryQuestions } from '../question-bank/quizStor
 import {
   clearLegacyLocalProgress,
   fetchQuizProgress,
-  getChapterProgress
+  getChapterProgress,
+  saveChapterProgressLocally,
+  syncQueuedProgress
 } from '../progress/progressStore';
 import './ChapterSelect.css';
 
@@ -16,6 +18,8 @@ export default function ChapterSelect() {
   const [quizProgress, setQuizProgress] = useState({ chapters: {} });
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
+  const [resettingChapterId, setResettingChapterId] = useState('');
+  const [resetMessage, setResetMessage] = useState('');
 
   useEffect(() => {
     let isMounted = true;
@@ -64,6 +68,33 @@ export default function ChapterSelect() {
     return Object.values(chapterCounts).reduce((sum, count) => sum + count, 0);
   }, [chapterCounts]);
 
+  const clearChapterRecord = async (chapter) => {
+    const progress = getChapterProgress(quizProgress, categoryId, chapter.id);
+    if (progress.answeredIds.length === 0 && progress.correctCount === 0) {
+      setResetMessage(`${chapter.name} 暂无做题记录`);
+      return;
+    }
+
+    const confirmed = window.confirm(`清空「${chapter.name}」的做题记录？其他章节不会受影响。`);
+    if (!confirmed) return;
+
+    const emptyProgress = { answeredIds: [], correctCount: 0 };
+    setResettingChapterId(chapter.id);
+    setResetMessage('');
+
+    const nextProgressState = saveChapterProgressLocally(categoryId, chapter.id, emptyProgress);
+    setQuizProgress(nextProgressState);
+
+    try {
+      await syncQueuedProgress();
+      setResetMessage(`已清空「${chapter.name}」的做题记录`);
+    } catch (error) {
+      setResetMessage(`已清空本地记录，云端同步失败：${error.message}`);
+    } finally {
+      setResettingChapterId('');
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="chapter-select">
@@ -96,6 +127,7 @@ export default function ChapterSelect() {
           </div>
         </div>
       </div>
+      {resetMessage && <div className="chapter-reset-message">{resetMessage}</div>}
 
       {chapters.length === 0 ? (
         <div className="chapter-state">当前分类暂无章节。</div>
@@ -108,9 +140,8 @@ export default function ChapterSelect() {
             const percent = count > 0 ? Math.round((answered / count) * 100) : 0;
 
             return (
-              <Link
+              <article
                 key={chapter.id}
-                to={`/quiz/${categoryId}/${chapter.id}`}
                 className="chapter-card"
               >
                 <div className="chapter-card-index">第 {index + 1} 章</div>
@@ -124,8 +155,20 @@ export default function ChapterSelect() {
                 <div className="chapter-progress-track">
                   <span style={{ width: `${percent}%` }} />
                 </div>
-                <div className="chapter-card-action">开始答题 →</div>
-              </Link>
+                <div className="chapter-card-actions">
+                  <Link to={`/quiz/${categoryId}/${chapter.id}`} className="chapter-start-link">
+                    开始答题 →
+                  </Link>
+                  <button
+                    type="button"
+                    className="chapter-clear-button"
+                    onClick={() => clearChapterRecord(chapter)}
+                    disabled={resettingChapterId === chapter.id || answered === 0}
+                  >
+                    {resettingChapterId === chapter.id ? '清空中...' : '清空记录'}
+                  </button>
+                </div>
+              </article>
             );
           })}
         </div>
