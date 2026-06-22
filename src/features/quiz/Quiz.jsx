@@ -149,11 +149,7 @@ export default function Quiz() {
 
     let options = isFillBlankQuestion(question) ? [] : sortOptions(question.options);
     if (shuffleOptions && !isFillBlankQuestion(question)) {
-      const values = shuffleArray(options.map((option) => option.value));
-      options = options.map((option, index) => ({
-        ...option,
-        value: values[index]
-      }));
+      options = shuffleArray(options);
     }
 
     setCurrentQuestion(question);
