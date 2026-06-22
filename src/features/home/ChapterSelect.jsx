@@ -68,7 +68,10 @@ export default function ChapterSelect() {
     return Object.values(chapterCounts).reduce((sum, count) => sum + count, 0);
   }, [chapterCounts]);
 
-  const clearChapterRecord = async (chapter) => {
+  const clearChapterRecord = async (event, chapter) => {
+    event.preventDefault();
+    event.stopPropagation();
+
     const progress = getChapterProgress(quizProgress, categoryId, chapter.id);
     if (progress.answeredIds.length === 0 && progress.correctCount === 0) {
       setResetMessage(`${chapter.name} 暂无做题记录`);
@@ -140,8 +143,9 @@ export default function ChapterSelect() {
             const percent = count > 0 ? Math.round((answered / count) * 100) : 0;
 
             return (
-              <article
+              <Link
                 key={chapter.id}
+                to={`/quiz/${categoryId}/${chapter.id}`}
                 className="chapter-card"
               >
                 <div className="chapter-card-index">第 {index + 1} 章</div>
@@ -156,19 +160,16 @@ export default function ChapterSelect() {
                   <span style={{ width: `${percent}%` }} />
                 </div>
                 <div className="chapter-card-actions">
-                  <Link to={`/quiz/${categoryId}/${chapter.id}`} className="chapter-start-link">
-                    开始答题 →
-                  </Link>
                   <button
                     type="button"
                     className="chapter-clear-button"
-                    onClick={() => clearChapterRecord(chapter)}
+                    onClick={(event) => clearChapterRecord(event, chapter)}
                     disabled={resettingChapterId === chapter.id || answered === 0}
                   >
                     {resettingChapterId === chapter.id ? '清空中...' : '清空记录'}
                   </button>
                 </div>
-              </article>
+              </Link>
             );
           })}
         </div>

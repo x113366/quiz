@@ -89,6 +89,7 @@
   min-height: 230px;
   padding: 1.35rem;
   position: relative;
+  text-decoration: none;
   transition: all 0.2s ease;
 }
 
@@ -153,19 +154,8 @@
   align-items: center;
   display: flex;
   gap: 0.75rem;
-  justify-content: space-between;
+  justify-content: flex-end;
   margin-top: 0.8rem;
-}
-
-.chapter-start-link {
-  color: var(--gold);
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.chapter-start-link:hover {
-  color: var(--green);
-  text-decoration: underline;
 }
 
 .chapter-clear-button {
@@ -207,8 +197,7 @@
     flex-direction: column;
   }
 
-  .chapter-clear-button,
-  .chapter-start-link {
+  .chapter-clear-button {
     text-align: center;
   }
 }
