@@ -278,6 +278,33 @@ export default function Quiz() {
     }
   }, []);
 
+  const recordQuestionProgress = async (wasCorrect) => {
+    const alreadyAnswered = progress.answeredIds.includes(currentQuestion.id);
+    const nextProgress = alreadyAnswered
+      ? progress
+      : {
+          answeredIds: [...progress.answeredIds, currentQuestion.id],
+          correctCount: wasCorrect
+            ? Math.min(progress.correctCount + 1, totalQuestions)
+            : progress.correctCount
+        };
+
+    setProgress(nextProgress);
+    saveChapterProgressLocally(categoryId, activeChapterId, nextProgress);
+    setPendingSyncCount(getSyncQueueSize());
+
+    try {
+      const result = await syncQueuedProgressIfNeeded();
+      setPendingSyncCount(result.pending);
+      setSyncMessage(result.skipped ? '进度已保存本地，待批量同步' : '进度已批量同步云端');
+    } catch (error) {
+      setSyncMessage(`进度同步失败：${error.message}`);
+      setPendingSyncCount(getSyncQueueSize());
+    }
+
+    return nextProgress;
+  };
+
   const handleOptionClick = (optionKey) => {
     if (showResult || !currentQuestion || isFillBlank) return;
 
@@ -313,26 +340,7 @@ export default function Quiz() {
     setIsCorrect(correct);
 
     if (correct) {
-      const alreadyAnswered = progress.answeredIds.includes(currentQuestion.id);
-      const nextProgress = alreadyAnswered
-        ? progress
-        : {
-            answeredIds: [...progress.answeredIds, currentQuestion.id],
-            correctCount: Math.min(progress.correctCount + 1, totalQuestions)
-          };
-
-      setProgress(nextProgress);
-      saveChapterProgressLocally(categoryId, activeChapterId, nextProgress);
-      setPendingSyncCount(getSyncQueueSize());
-
-      try {
-        const result = await syncQueuedProgressIfNeeded();
-        setPendingSyncCount(result.pending);
-        setSyncMessage(result.skipped ? '进度已保存本地，待批量同步' : '进度已批量同步云端');
-      } catch (error) {
-        setSyncMessage(`进度同步失败：${error.message}`);
-        setPendingSyncCount(getSyncQueueSize());
-      }
+      const nextProgress = await recordQuestionProgress(true);
 
       setTimeout(() => {
         loadNewQuestion(nextProgress, true, {
@@ -356,6 +364,7 @@ export default function Quiz() {
           chapterName: category?.chapters?.find((chapter) => chapter.id === activeChapterId)?.name || '未知章节'
         }
       }));
+      await recordQuestionProgress(false);
     }
   };
 
