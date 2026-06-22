@@ -100,6 +100,7 @@ export default function Quiz() {
   const [errorMessage, setErrorMessage] = useState('');
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [selectedAnswers, setSelectedAnswers] = useState([]);
+  const [submittedProgress, setSubmittedProgress] = useState(null);
   const [showResult, setShowResult] = useState(false);
   const [isCorrect, setIsCorrect] = useState(false);
   const [shuffledOptions, setShuffledOptions] = useState([]);
@@ -129,6 +130,7 @@ export default function Quiz() {
   const isMultipleChoice = correctAnswers.length > 1;
   const canEditCurrentQuestion = canEditQuestions(currentUser);
   const elapsedTimeText = useMemo(() => formatElapsedTime(elapsedSeconds), [elapsedSeconds]);
+  const visibleProgress = submittedProgress || progress;
 
   useEffect(() => {
     const handleAuthChange = () => setCurrentUser(getCurrentUser());
@@ -154,6 +156,7 @@ export default function Quiz() {
 
     setCurrentQuestion(question);
     setSelectedAnswers([]);
+    setSubmittedProgress(null);
     setShowResult(false);
     setIsCorrect(false);
     setIsReviewingHistory(false);
@@ -286,6 +289,7 @@ export default function Quiz() {
         };
 
     setProgress(nextProgress);
+    setSubmittedProgress(nextProgress);
     saveChapterProgressLocally(categoryId, activeChapterId, nextProgress);
     setPendingSyncCount(getSyncQueueSize());
 
@@ -360,7 +364,8 @@ export default function Quiz() {
           chapterName: category?.chapters?.find((chapter) => chapter.id === activeChapterId)?.name || '未知章节'
         }
       }));
-      await recordQuestionProgress(false);
+      const nextProgress = await recordQuestionProgress(false);
+      setSubmittedProgress(nextProgress);
     }
   };
 
@@ -380,6 +385,7 @@ export default function Quiz() {
         };
 
     setProgress(nextProgress);
+    setSubmittedProgress(nextProgress);
     saveChapterProgressLocally(categoryId, activeChapterId, nextProgress);
     setPendingSyncCount(getSyncQueueSize());
 
@@ -585,7 +591,7 @@ export default function Quiz() {
               <span className="category-name">{category?.name}</span>
             </div>
             <div className="question-counter">
-              第 {progress.answeredIds.length + 1} / {totalQuestions} 题
+              第 {Math.min(visibleProgress.answeredIds.length + 1, totalQuestions)} / {totalQuestions} 题
             </div>
             <div className="quiz-timer" aria-label={`本次用时 ${elapsedTimeText}`}>
               <div className="quiz-timer-readout">
@@ -600,21 +606,21 @@ export default function Quiz() {
                 {isTimerRunning ? '停止' : '开始'}
               </button>
             </div>
-            <ProgressBar current={progress.answeredIds.length} total={totalQuestions} />
+            <ProgressBar current={visibleProgress.answeredIds.length} total={totalQuestions} />
             <div className="status-details compact">
               <div className="status-item">
                 <span className="status-label">已答</span>
-                <span className="status-value">{progress.answeredIds.length}</span>
+                <span className="status-value">{visibleProgress.answeredIds.length}</span>
               </div>
               <div className="status-item">
                 <span className="status-label">正确</span>
-                <span className="status-value">{progress.correctCount}</span>
+                <span className="status-value">{visibleProgress.correctCount}</span>
               </div>
               <div className="status-item">
                 <span className="status-label">正确率</span>
                 <span className="status-value">
-                  {progress.answeredIds.length > 0
-                    ? `${Math.round((progress.correctCount / progress.answeredIds.length) * 100)}%`
+                  {visibleProgress.answeredIds.length > 0
+                    ? `${Math.round((visibleProgress.correctCount / visibleProgress.answeredIds.length) * 100)}%`
                     : '0%'}
                 </span>
               </div>
@@ -699,7 +705,7 @@ export default function Quiz() {
                     </button>
                     {(showResult || isReviewingHistory) && (
                       <button
-                        onClick={() => loadNewQuestion(progress, false)}
+                        onClick={() => loadNewQuestion(visibleProgress, false)}
                         className="submit-button"
                       >
                         继续答题
@@ -717,7 +723,7 @@ export default function Quiz() {
                 </button>
                 {isReviewingHistory && (
                   <button
-                    onClick={() => loadNewQuestion(progress, false)}
+                    onClick={() => loadNewQuestion(visibleProgress, false)}
                     className="submit-button"
                   >
                     继续答题
@@ -882,7 +888,7 @@ export default function Quiz() {
               {showResult && !isCorrect && !isReviewingHistory && !isFillBlank && (
                 <>
                   {syncMessage && <div className="copy-message">{syncMessage}</div>}
-                  <button onClick={() => loadNewQuestion(progress)} className="next-button">
+                  <button onClick={() => loadNewQuestion(visibleProgress)} className="next-button">
                     继续答题
                   </button>
                 </>
