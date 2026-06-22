@@ -130,7 +130,24 @@ export default function Quiz() {
   const isMultipleChoice = correctAnswers.length > 1;
   const canEditCurrentQuestion = canEditQuestions(currentUser);
   const elapsedTimeText = useMemo(() => formatElapsedTime(elapsedSeconds), [elapsedSeconds]);
-  const visibleProgress = submittedProgress || progress;
+  const progressWithCurrentResult = useMemo(() => {
+    const shouldCountCurrentResult = showResult &&
+      currentQuestion &&
+      !isReviewingHistory &&
+      !progress.answeredIds.includes(currentQuestion.id);
+
+    if (!shouldCountCurrentResult) {
+      return progress;
+    }
+
+    return {
+      answeredIds: [...progress.answeredIds, currentQuestion.id],
+      correctCount: isCorrect
+        ? Math.min(progress.correctCount + 1, totalQuestions)
+        : progress.correctCount
+    };
+  }, [currentQuestion, isCorrect, isReviewingHistory, progress, showResult, totalQuestions]);
+  const visibleProgress = submittedProgress || progressWithCurrentResult;
 
   useEffect(() => {
     const handleAuthChange = () => setCurrentUser(getCurrentUser());
