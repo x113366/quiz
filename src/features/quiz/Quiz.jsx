@@ -130,24 +130,7 @@ export default function Quiz() {
   const isMultipleChoice = correctAnswers.length > 1;
   const canEditCurrentQuestion = canEditQuestions(currentUser);
   const elapsedTimeText = useMemo(() => formatElapsedTime(elapsedSeconds), [elapsedSeconds]);
-  const baseProgress = submittedProgress || progress;
-  const visibleProgress = useMemo(() => {
-    const shouldCountCurrentResult = showResult &&
-      currentQuestion &&
-      !isReviewingHistory &&
-      !baseProgress.answeredIds.includes(currentQuestion.id);
-
-    if (!shouldCountCurrentResult) {
-      return baseProgress;
-    }
-
-    return {
-      answeredIds: [...baseProgress.answeredIds, currentQuestion.id],
-      correctCount: isCorrect
-        ? Math.min(baseProgress.correctCount + 1, totalQuestions)
-        : baseProgress.correctCount
-    };
-  }, [baseProgress, currentQuestion, isCorrect, isReviewingHistory, showResult, totalQuestions]);
+  const visibleProgress = submittedProgress || progress;
   const currentQuestionNumber = showResult && !isReviewingHistory
     ? visibleProgress.answeredIds.length
     : visibleProgress.answeredIds.length + 1;
@@ -298,15 +281,14 @@ export default function Quiz() {
   }, []);
 
   const recordQuestionProgress = async (wasCorrect) => {
-    const progressBeforeSubmit = submittedProgress || progress;
-    const alreadyAnswered = progressBeforeSubmit.answeredIds.includes(currentQuestion.id);
+    const alreadyAnswered = progress.answeredIds.includes(currentQuestion.id);
     const nextProgress = alreadyAnswered
-      ? progressBeforeSubmit
+      ? progress
       : {
-          answeredIds: [...progressBeforeSubmit.answeredIds, currentQuestion.id],
+          answeredIds: [...progress.answeredIds, currentQuestion.id],
           correctCount: wasCorrect
-            ? Math.min(progressBeforeSubmit.correctCount + 1, totalQuestions)
-            : progressBeforeSubmit.correctCount
+            ? Math.min(progress.correctCount + 1, totalQuestions)
+            : progress.correctCount
         };
 
     setProgress(nextProgress);
@@ -359,10 +341,9 @@ export default function Quiz() {
     const correctSorted = [...correctAnswers].sort();
     const correct = JSON.stringify(selectedSorted) === JSON.stringify(correctSorted);
     setIsCorrect(correct);
+    const nextProgress = await recordQuestionProgress(correct);
 
     if (correct) {
-      const nextProgress = await recordQuestionProgress(true);
-
       setTimeout(() => {
         loadNewQuestion(nextProgress, true, {
           selectedAnswers,
@@ -385,8 +366,6 @@ export default function Quiz() {
           chapterName: category?.chapters?.find((chapter) => chapter.id === activeChapterId)?.name || '未知章节'
         }
       }));
-      const nextProgress = await recordQuestionProgress(false);
-      setSubmittedProgress(nextProgress);
     }
   };
 
