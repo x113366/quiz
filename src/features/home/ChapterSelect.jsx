@@ -168,6 +168,7 @@ export default function ChapterSelect() {
                   >
                     {resettingChapterId === chapter.id ? '清空中...' : '清空记录'}
                   </button>
+                  <span className="chapter-enter-label">进入章节 →</span>
                 </div>
               </Link>
             );
