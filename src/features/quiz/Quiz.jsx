@@ -70,6 +70,93 @@ const renderFillBlankAnswer = (question, isRevealed) => {
   ));
 };
 
+const formatExplanationParagraphs = (explanation) => {
+  const content = String(explanation || '').trim();
+  if (!content) return ['暂无解析'];
+
+  return content
+    .split(/\n+/)
+    .map((paragraph) => paragraph.trim())
+    .filter(Boolean);
+};
+
+function ExplanationSheet({
+  question,
+  correctAnswers,
+  isFillBlank,
+  onClose
+}) {
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.body.classList.add('explanation-sheet-open');
+    window.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.body.classList.remove('explanation-sheet-open');
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [onClose]);
+
+  const paragraphs = formatExplanationParagraphs(question?.explanation);
+  const answerText = isFillBlank
+    ? getFillBlankAnswerContent(question)
+    : correctAnswers.map((key) => `${key.toUpperCase()}. ${question.options[key]}`).join('；');
+
+  return (
+    <div className="explanation-sheet-backdrop" onClick={onClose}>
+      <section
+        className="explanation-sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="explanation-sheet-title"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <div className="explanation-sheet-handle" aria-hidden="true" />
+        <header className="explanation-sheet-header">
+          <div>
+            <p className="explanation-sheet-kicker">题目解析</p>
+            <h3 id="explanation-sheet-title">查看完整解析</h3>
+          </div>
+          <button
+            type="button"
+            className="explanation-sheet-close"
+            onClick={onClose}
+            aria-label="关闭解析弹窗"
+          >
+            ×
+          </button>
+        </header>
+
+        <div className="explanation-sheet-content">
+          <section className="explanation-sheet-section">
+            <div className="explanation-sheet-label">题干</div>
+            <div className="explanation-sheet-question">{question.question}</div>
+          </section>
+
+          <section className="explanation-sheet-section explanation-sheet-answer">
+            <div className="explanation-sheet-label">正确答案</div>
+            <div className="explanation-sheet-answer-text">{answerText || '暂无答案'}</div>
+          </section>
+
+          <section className="explanation-sheet-section explanation-sheet-main">
+            <div className="explanation-sheet-label">解析</div>
+            <div className="explanation-sheet-paragraphs">
+              {paragraphs.map((paragraph, index) => (
+                <p key={`${paragraph}-${index}`}>{paragraph}</p>
+              ))}
+            </div>
+          </section>
+        </div>
+      </section>
+    </div>
+  );
+}
+
 const pickRandomQuestion = (questions, answeredIds, excludedIds = []) => {
   const excluded = new Set([...answeredIds, ...excludedIds]);
   const remaining = questions.filter((question) => !excluded.has(question.id));
@@ -120,6 +207,7 @@ export default function Quiz() {
   const [isSavingQuestion, setIsSavingQuestion] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [isExplanationSheetOpen, setIsExplanationSheetOpen] = useState(false);
   const wrongBookKey = `wrongBook:${getCurrentClientId()}`;
   const [, setWrongBook] = useLocalStorage(wrongBookKey, {});
 
@@ -168,6 +256,7 @@ export default function Quiz() {
     setIsEditingQuestion(false);
     setEditDraft(null);
     setEditMessage('');
+    setIsExplanationSheetOpen(false);
     setShuffledOptions(options);
   }, [shuffleOptions]);
 
@@ -413,6 +502,7 @@ export default function Quiz() {
     setIsEditingQuestion(false);
     setEditDraft(null);
     setEditMessage('');
+    setIsExplanationSheetOpen(false);
     setLastClickTime(0);
     setLastClickedOption(null);
     setShuffledOptions(previousAttempt.shuffledOptions);
@@ -773,10 +863,15 @@ export default function Quiz() {
                     )}
                   </div>
                   {showResult && (
-                    <div className="explanation">
-                      <strong>💡 解析：</strong>
+                    <button
+                      type="button"
+                      className="explanation explanation-trigger"
+                      onClick={() => setIsExplanationSheetOpen(true)}
+                    >
+                      <strong>解析：</strong>
                       {currentQuestion.explanation}
-                    </div>
+                      <span className="explanation-open-hint">点击放大查看</span>
+                    </button>
                   )}
                   {showResult && syncMessage && <span className="copy-message">{syncMessage}</span>}
                 </>
@@ -806,10 +901,15 @@ export default function Quiz() {
                 </>
                 )}
                 {showResult && (
-                <div className="explanation">
-                  <strong>💡 解析：</strong>
+                <button
+                  type="button"
+                  className="explanation explanation-trigger"
+                  onClick={() => setIsExplanationSheetOpen(true)}
+                >
+                  <strong>解析：</strong>
                   {currentQuestion.explanation}
-                </div>
+                  <span className="explanation-open-hint">点击放大查看</span>
+                </button>
                 )}
 
                 {showResult && isCorrect && (
@@ -897,6 +997,14 @@ export default function Quiz() {
           </aside>
         </div>
       </div>
+      {isExplanationSheetOpen && (
+        <ExplanationSheet
+          question={currentQuestion}
+          correctAnswers={correctAnswers}
+          isFillBlank={isFillBlank}
+          onClose={() => setIsExplanationSheetOpen(false)}
+        />
+      )}
     </div>
   );
 }
