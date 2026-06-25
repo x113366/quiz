@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>本地存储测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #333;
+        }
+        .section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .section h2 {
+            margin-top: 0;
+            color: #555;
+        }
+        .data {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 3px;
+            white-space: pre-wrap;
+            font-family: monospace;
+        }
+        .button {
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        .button:hover {
+            background-color: #45a049;
+        }
+        .button.danger {
+            background-color: #f44336;
+        }
+        .button.danger:hover {
+            background-color: #d32f2f;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>本地存储测试</h1>
+        
+        <div class="section">
+            <h2>存储内容</h2>
+            <button class="button" onclick="showStorage()">查看存储</button>
+            <button class="button danger" onclick="clearStorage()">清除存储</button>
+            <div id="storageContent" class="data"></div>
+        </div>
+        
+        <div class="section">
+            <h2>Excel 导入测试</h2>
+            <input type="file" id="fileInput" accept=".xlsx,.xls">
+            <button class="button" onclick="testExcelImport()">测试 Excel 导入</button>
+            <div id="importResult" class="data"></div>
+        </div>
+    </div>
+    
+    <script>
+        function showStorage() {
+            const categories = localStorage.getItem('quizCategories');
+            const questions = localStorage.getItem('quizQuestions');
+            const quizLog = localStorage.getItem('quizLog');
+            const quizProgress = localStorage.getItem('quizProgress');
+            const wrongBook = localStorage.getItem('wrongBook');
+            
+            let content = '';
+            
+            // 分类
+            if (categories) {
+                content += '=== 分类 ===\n';
+                const cats = JSON.parse(categories);
+                content += `分类数量: ${cats.length}\n`;
+                cats.forEach(cat => {
+                    content += `- ${cat.name} (${cat.id})\n`;
+                });
+            } else {
+                content += '=== 分类 ===\n无\n';
+            }
+            
+            content += '\n';
+            
+            // 题目
+            if (questions) {
+                content += '=== 题目 ===\n';
+                const qs = JSON.parse(questions);
+                content += `分类数量: ${Object.keys(qs).length}\n`;
+                Object.entries(qs).forEach(([categoryId, questions]) => {
+                    content += `- 分类 ${categoryId}: ${questions.length} 题\n`;
+                });
+            } else {
+                content += '=== 题目 ===\n无\n';
+            }
+            
+            content += '\n';
+            
+            // 答题日志
+            if (quizLog) {
+                content += '=== 答题日志 ===\n';
+                const log = JSON.parse(quizLog);
+                content += `记录数量: ${log.length}\n`;
+            } else {
+                content += '=== 答题日志 ===\n无\n';
+            }
+            
+            content += '\n';
+            
+            // 答题进度
+            if (quizProgress) {
+                content += '=== 答题进度 ===\n有\n';
+            } else {
+                content += '=== 答题进度 ===\n无\n';
+            }
+            
+            content += '\n';
+            
+            // 错题本
+            if (wrongBook) {
+                content += '=== 错题本 ===\n';
+                const book = JSON.parse(wrongBook);
+                content += `错题数量: ${Object.keys(book).length}\n`;
+            } else {
+                content += '=== 错题本 ===\n无\n';
+            }
+            
+            document.getElementById('storageContent').textContent = content;
+        }
+        
+        function clearStorage() {
+            if (confirm('确定要清除所有本地存储数据吗？')) {
+                localStorage.clear();
+                showStorage();
+                alert('存储已清除');
+            }
+        }
+        
+        function testExcelImport() {
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                alert('请选择一个Excel文件');
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    // 这里只是模拟，实际解析需要 SheetJS
+                    document.getElementById('importResult').textContent = '文件读取成功，大小: ' + file.size + ' bytes';
+                } catch (error) {
+                    document.getElementById('importResult').textContent = '错误: ' + error.message;
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+        
+        // 初始显示
+        showStorage();
+    </script>
+</body>
+</html>
