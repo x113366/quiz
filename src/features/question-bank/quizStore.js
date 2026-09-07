@@ -99,6 +99,16 @@ const cloneQuestionGroups = (questions = {}) => {
   );
 };
 
+const removeCategoryFromData = (data = EMPTY_QUIZ_DATA, categoryId) => {
+  const nextQuestions = cloneQuestionGroups(data.questions);
+  delete nextQuestions[categoryId];
+
+  return {
+    categories: (data.categories || []).filter((category) => category.id !== categoryId),
+    questions: nextQuestions
+  };
+};
+
 const ensureQuestionChapter = (questions, categoryId, chapterId) => {
   if (!questions[categoryId]) {
     questions[categoryId] = {};
@@ -401,6 +411,44 @@ export const mergeLocalQuestionBank = (data) => {
   quizCache = mergeQuestionBanks(loadLocalQuizData() || EMPTY_QUIZ_DATA, data);
   saveLocalQuizData(quizCache);
   return quizCache;
+};
+
+export const deleteLocalQuestionBankCategory = (categoryId) => {
+  const localQuizData = loadLocalQuizData();
+  const localImportedQuizData = loadLocalImportedQuizData();
+
+  const nextLocalQuizData = localQuizData
+    ? removeCategoryFromData(localQuizData, categoryId)
+    : EMPTY_QUIZ_DATA;
+  const nextLocalImportedQuizData = localImportedQuizData
+    ? removeCategoryFromData(localImportedQuizData, categoryId)
+    : EMPTY_QUIZ_DATA;
+
+  saveLocalQuizData(nextLocalQuizData);
+  saveLocalImportedQuizData(nextLocalImportedQuizData);
+  quizCache = nextLocalQuizData;
+
+  return quizCache;
+};
+
+export const deleteQuestionBankCategoryFromCloud = async ({ userId, categoryId }) => {
+  const { data, error } = await supabase.rpc('quiz_delete_category_for_editor', {
+    p_user_id: userId,
+    p_category_id: categoryId
+  });
+
+  if (error) {
+    if (error.message?.includes('schema cache')) {
+      throw new Error('云端删除函数尚未生效，请先在 Supabase SQL Editor 执行最新删除题库 RPC 脚本');
+    }
+    throw new Error(error.message || '云端删除失败');
+  }
+
+  return data?.[0] || {
+    deleted_category_id: categoryId,
+    deleted_question_count: 0,
+    deleted_chapter_count: 0
+  };
 };
 
 export const uploadLocalQuestionBankToCloud = async (userId) => {

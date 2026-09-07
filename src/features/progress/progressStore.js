@@ -144,8 +144,27 @@ export const saveChapterProgress = async (categoryId, chapterId, progress) => {
 };
 
 export const saveChapterProgressLocally = (categoryId, chapterId, progress) => {
-  saveLocalChapterProgress(categoryId, chapterId, progress);
+  const state = saveLocalChapterProgress(categoryId, chapterId, progress);
   enqueueProgressSync(categoryId, chapterId, progress);
+  return state;
+};
+
+export const clearLocalCategoryProgress = (categoryId) => {
+  const state = getLocalQuizProgress();
+  if (state.chapters?.[categoryId]) {
+    delete state.chapters[categoryId];
+    writeJson(LOCAL_PROGRESS_KEY, state);
+  }
+
+  const queue = getSyncQueue();
+  Object.keys(queue).forEach((key) => {
+    if (key.startsWith(`${categoryId}::`)) {
+      delete queue[key];
+    }
+  });
+  writeJson(SYNC_QUEUE_KEY, queue);
+
+  return state;
 };
 
 export const syncQueuedProgress = async () => {

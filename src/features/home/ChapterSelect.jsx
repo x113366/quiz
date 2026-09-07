@@ -88,14 +88,16 @@ export default function ChapterSelect() {
     const nextProgressState = saveChapterProgressLocally(categoryId, chapter.id, emptyProgress);
     setQuizProgress(nextProgressState);
 
-    try {
-      await syncQueuedProgress();
-      setResetMessage(`已清空「${chapter.name}」的做题记录`);
-    } catch (error) {
-      setResetMessage(`已清空本地记录，云端同步失败：${error.message}`);
-    } finally {
-      setResettingChapterId('');
-    }
+    setResetMessage(`已清空「${chapter.name}」的本地做题记录，正在同步云端...`);
+    setResettingChapterId('');
+
+    syncQueuedProgress()
+      .then(() => {
+        setResetMessage(`已清空「${chapter.name}」的做题记录`);
+      })
+      .catch((error) => {
+        setResetMessage(`已清空本地记录，云端同步失败：${error.message}`);
+      });
   };
 
   if (isLoading) {

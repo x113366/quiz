@@ -1,11 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  deleteLocalQuestionBankCategory,
+  deleteQuestionBankCategoryFromCloud,
   getAllCategories,
   getCategoryQuestions,
   loadQuizData,
   mergeLocalQuestionBank,
   uploadLocalQuestionBankToCloud
 } from '../question-bank/quizStore';
+import { clearLocalCategoryProgress } from '../progress/progressStore';
 import { canEditQuestions, getCurrentUser, subscribeToAuthChanges } from '../auth/authStore';
 import {
   downloadQuestionBankTemplate,
@@ -20,6 +23,7 @@ export default function QuizManager() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [isUploadingCloud, setIsUploadingCloud] = useState(false);
+  const [deletingCategoryId, setDeletingCategoryId] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
   const [syncMessage, setSyncMessage] = useState('');
   const [importMessage, setImportMessage] = useState('');
@@ -135,6 +139,40 @@ export default function QuizManager() {
       setIsImporting(false);
       setIsLoading(false);
       event.target.value = '';
+    }
+  };
+
+  const handleDeleteCategory = async (category) => {
+    if (!canUploadCloud || !currentUser?.id || deletingCategoryId) return;
+
+    const questionCount = questionCounts[category.id] || 0;
+    const confirmed = window.confirm(
+      `确认删除「${category.name}」题库？\\n\\n将删除本地缓存，并同步删除云端对应分类、章节和 ${questionCount} 道题。此操作不可撤销。`
+    );
+    if (!confirmed) return;
+
+    setDeletingCategoryId(category.id);
+    setErrorMessage('');
+    setSyncMessage('');
+    setImportMessage('');
+    setCloudMessage('');
+
+    try {
+      const result = await deleteQuestionBankCategoryFromCloud({
+        userId: currentUser.id,
+        categoryId: category.id
+      });
+      deleteLocalQuestionBankCategory(category.id);
+      clearLocalCategoryProgress(category.id);
+      await refreshLocalSummary();
+      setCloudMessage(
+        `已删除「${category.name}」：云端 ${result.deleted_question_count || 0} 道题，本地缓存已清理`
+      );
+    } catch (error) {
+      setErrorMessage(error.message || '删除题库失败');
+    } finally {
+      setDeletingCategoryId('');
+      setIsLoading(false);
     }
   };
 
@@ -262,6 +300,16 @@ export default function QuizManager() {
                       )}
                     </div>
                   </div>
+                  {canUploadCloud && (
+                    <button
+                      type="button"
+                      className="delete-button"
+                      onClick={() => handleDeleteCategory(category)}
+                      disabled={deletingCategoryId === category.id}
+                    >
+                      {deletingCategoryId === category.id ? '删除中...' : '删除题库'}
+                    </button>
+                  )}
                 </li>
               ))}
             </ul>
